@@ -34,5 +34,20 @@ pub fn main() !void {
 
     // ---------------------------- [[ Directory Commands ]] ---------------------------- //
 
-    try cli.parse(args, &.{});
+    // ================= Make Directory Command =================
+    _ = cli.command("mkdir", "Create a new directory in the current location.").action(commands.makeDirCommand).finalize();
+
+    // ================= Remove Directory Command =================
+    const rm_dir = cli.command("rmdir", "Remove a directory from the current location.").option(.{
+        .name = "force",
+        .alias = "f",
+        .description = "Force removal of non-empty directory.",
+        .type = .bool,
+        .default = .{ .bool = false },
+    }).action(commands.removeDirCommand).finalize();
+
+    // ================= Rename Directory Command =================
+    _ = cli.command("rndir", "Rename a directory in the current location.").action(commands.renameDirCommand).finalize();
+
+    try cli.parse(args, &.{rm_dir});
 }
