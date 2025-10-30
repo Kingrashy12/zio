@@ -42,9 +42,31 @@ chmod +x zio
 sudo mv zio /usr/local/bin/
 ```
 
-```bash
-# Windows (PowerShell)
-Invoke-WebRequest -Uri "https://github.com/Kingrashy12/zio/releases/latest/download/zio-x86_64-windows.exe" -OutFile "zio.exe"
+```powershell
+# Windows (PowerShell) — Option A: install to a user folder and add to your user PATH (no admin)
+$dest = "$env:USERPROFILE\bin"
+New-Item -ItemType Directory -Force -Path $dest
+Invoke-WebRequest -Uri "https://github.com/Kingrashy12/zio/releases/latest/download/zio-x86_64-windows.exe" -OutFile "$dest\zio.exe"
+# add to user PATH if not already present
+$userPath = [Environment]::GetEnvironmentVariable("Path","User")
+if (-not ($userPath -split ';' | Where-Object { $_ -eq $dest })) {
+    [Environment]::SetEnvironmentVariable("Path", ("$userPath;"+$dest).Trim(';'), "User")
+    Write-Output "Added $dest to your user PATH. Restart your terminal to apply."
+} else {
+    Write-Output "$dest is already in your user PATH."
+}
+
+# Windows (PowerShell) — Option B: install to per-user Programs (global appdata) and add to PATH (no admin)
+$dest = "$env:LOCALAPPDATA\Programs\zio"
+New-Item -ItemType Directory -Force -Path $dest
+Invoke-WebRequest -Uri "https://github.com/Kingrashy12/zio/releases/latest/download/zio-x86_64-windows.exe" -OutFile "$dest\zio.exe"
+$userPath = [Environment]::GetEnvironmentVariable("Path","User")
+if (-not ($userPath -split ';' | Where-Object { $_ -eq $dest })) {
+    [Environment]::SetEnvironmentVariable("Path", ("$userPath;"+$dest).Trim(';'), "User")
+    Write-Output "Added $dest to your user PATH. Restart your terminal to apply."
+} else {
+    Write-Output "$dest is already in your user PATH."
+}
 ```
 
 ## 🧠 Usage
@@ -59,7 +81,6 @@ zio <command> [options]
 | -------- | ------------------------------------------- |
 | `create` | Create a new file in the current directory. |
 | `delete` | Delete a file from the current directory.   |
-| `list`   | List all files in the current directory.    |
 | `move`   | Move a file to a new location.              |
 | `rename` | Rename a file in the current directory.     |
 
@@ -87,7 +108,7 @@ zio delete old.txt
 zio list
 
 # Move file to subdirectory
-zio move hello.txt docs/hello.txt
+zio move hello.txt->docs/hello.txt
 
 # Rename a file
 zio rename old.txt->new.txt

@@ -22,24 +22,29 @@ pub fn renameCommand(params: ActionArg) !void {
         var parts_slice = std.mem.tokenizeAny(u8, value, "->");
 
         const old_name = parts_slice.next().?;
-        const new_name = parts_slice.next().?;
+        const new_name = parts_slice.next();
 
-        cwd.rename(old_name, new_name) catch |err| {
+        if (new_name == null) {
+            printColored(.yellow, "Missing new name in argument: {s}. Expected format: <old_name>-><new_name>", .{value});
+            return;
+        }
+
+        cwd.rename(old_name, new_name.?) catch |err| {
             switch (err) {
                 error.FileNotFound => {
                     printColored(.red, "Error: File '{s}' not found.", .{old_name});
                     return;
                 },
                 error.PathAlreadyExists => {
-                    printColored(.red, "Error: File '{s}' already exists.", .{new_name});
+                    printColored(.red, "Error: File '{s}' already exists.", .{new_name.?});
                     return;
                 },
                 else => {
-                    printColored(.red, "Error: Could not rename file '{s}' to '{s}': {s}.", .{ old_name, new_name, @errorName(err) });
+                    printColored(.red, "Error: Could not rename file '{s}' to '{s}': {s}.", .{ old_name, new_name.?, @errorName(err) });
                     return;
                 },
             }
         };
-        printColored(.green, "Renamed file: '{s}' to '{s}'\n", .{ old_name, new_name });
+        printColored(.green, "Renamed file: '{s}' to '{s}'\n", .{ old_name, new_name.? });
     }
 }

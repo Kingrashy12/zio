@@ -12,7 +12,7 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    var cli = CLIBuilder.init(allocator, "zio", "0.0.2", "A blazing-fast file system utility designed for efficiency and reliability.");
+    var cli = CLIBuilder.init(allocator, "zio", "0.0.3", "A blazing-fast, cross-platform file system utility built in Zig — designed for efficiency, reliability, and simplicity.");
     defer cli.deinit();
 
     cli.setGlobalOptions();
