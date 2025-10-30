@@ -1,3 +1,3 @@
 *.bat
 .zig-cache
-zig-outs
+zig-out
