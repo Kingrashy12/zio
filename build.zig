@@ -10,7 +10,7 @@ const targets: []const std.Target.Query = &.{
 };
 
 pub fn build(b: *std.Build) void {
-    const optimize = b.standardOptimizeOption(.{ .preferred_optimize_mode = .ReleaseSafe });
+    const optimize = b.standardOptimizeOption(.{ .preferred_optimize_mode = .ReleaseSmall });
 
     for (targets) |target| {
         const exe = b.addExecutable(.{
