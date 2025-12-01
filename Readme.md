@@ -289,7 +289,7 @@ zio stats *.log build/
 ### Global Options
 
 - `--help`, `-h`: Show help information.
-- `--version`, `-v`: Show version information.
+- `--version`, `-V`: Show version information.
 
 **Examples:**
 
@@ -310,7 +310,6 @@ zio create --help
 
 - **Documentation:** This README and inline help (`zio --help`).
 - **Issues:** Report bugs or request features on [GitHub Issues](https://github.com/Kingrashy12/zio/issues).
-- **Discussions:** Join community discussions on [GitHub Discussions](https://github.com/Kingrashy12/zio/discussions).
 
 ---
 
