@@ -51,21 +51,38 @@ pub fn statsCommand(ctx: CommandContext) !void {
     var file_stats: std.ArrayList(FileStats) = .empty;
     defer file_stats.deinit(allocator);
 
+    const CHUNK_SIZE: usize = 8192;
+
     for (files.items) |path| {
         var file = std.fs.cwd().openFile(path, .{}) catch continue;
         defer file.close();
 
         const file_size = try file.getEndPos();
 
-        const buffer = try allocator.alloc(u8, @intCast(file_size));
-        defer allocator.free(buffer);
-
-        var buf_reader = file.reader(buffer);
+        var buffer: [CHUNK_SIZE]u8 = undefined;
 
         var line_count: usize = 0;
 
-        while (try buf_reader.interface.takeDelimiter('\n')) |_| {
-            line_count += 1;
+        while (file.read(buffer[0..])) |bytes_read| {
+            // file.read returns the number of bytes read (0 if EOF)
+            if (bytes_read == 0) break;
+
+            // CRITICAL: Count newlines only on the portion of the buffer that was read
+            line_count += std.mem.count(u8, buffer[0..bytes_read], "\n");
+        } else |err| {
+            // Handle I/O errors other than EOF
+            if (err != error.EndOfStream) return err;
+        }
+
+        if (file_size > 0) {
+            // Seek to the end-1 to check the last byte
+            try file.seekTo(file_size - 1);
+            var last_byte_storage: [1]u8 = undefined;
+
+            const bytes_read = try file.read(last_byte_storage[0..]);
+            if (bytes_read == 1 and last_byte_storage[0] != '\n') {
+                line_count += 1;
+            }
         }
 
         try file_stats.append(allocator, .{ .name = path, .lines = line_count });
