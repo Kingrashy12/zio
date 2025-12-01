@@ -3,6 +3,7 @@ pub const deleteCommand = @import("delete.zig").deleteCommand;
 pub const renameCommand = @import("rename.zig").renameCommand;
 pub const listCommand = @import("list.zig").listCommand;
 pub const moveCommand = @import("move.zig").moveCommand;
+pub const statsCommand = @import("stats.zig").statsCommand;
 
 // Directory
 pub const makeDirCommand = @import("mkdir.zig").mkdirCommand;

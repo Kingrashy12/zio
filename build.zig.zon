@@ -33,8 +33,8 @@
     // internet connectivity.
     .dependencies = .{
         .ziglet = .{
-            .url = "git+https://github.com/Kingrashy12/ziglet#88c438f94f0f7f33915b5a67d050b9118ef30ab8",
-            .hash = "ziglet-0.2.2-ik-x8vrcAADSsJJ2LUgte7IKl9r6U2ECP8KQ3-_-jrAV",
+            .url = "git+https://github.com/Kingrashy12/ziglet#79aeb8af581757745a4cb471f84c76c8573c7894",
+            .hash = "ziglet-0.4.0-ik-x8lTeAAC-MZu1K-QyoUVIIHA8NS0GDUDJfqWvTco5",
         },
     },
     .paths = .{

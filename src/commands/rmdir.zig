@@ -1,15 +1,15 @@
 const ziglet = @import("ziglet");
-const ActionArg = ziglet.ActionArg;
+const CommandContext = ziglet.CommandContext;
 const std = @import("std");
 const terminal = ziglet.utils.terminal;
 const printColored = terminal.printColored;
 
-pub fn removeDirCommand(params: ActionArg) !void {
-    const allocator = params.allocator;
+pub fn removeDirCommand(ctx: CommandContext) !void {
+    const allocator = ctx.allocator;
 
-    const force = params.options.get("force");
+    const force = ctx.options.get("force");
 
-    const args = params.args;
+    const args = ctx.args;
 
     if (args.len == 0) {
         printColored(.yellow, "Usage: zio rmdir <dir_name>", .{});

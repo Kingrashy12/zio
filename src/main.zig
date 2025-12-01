@@ -7,6 +7,8 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
     defer _ = gpa.deinit();
 
+    ziglet.utils.terminal.setWinConsole();
+
     const allocator = gpa.allocator();
 
     const args = try std.process.argsAlloc(allocator);
@@ -33,6 +35,9 @@ pub fn main() !void {
 
     // ================= Rename Command =================
     _ = cli.command("rename", "Rename a file in the current directory.").action(commands.renameCommand).finalize();
+
+    // ================= Stats Command =================
+    _ = cli.command("stats", "Get stats of all files in the current directory.").action(commands.statsCommand).finalize();
 
     // ---------------------------- [[ Directory Commands ]] ---------------------------- //
 

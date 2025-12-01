@@ -6,11 +6,7 @@ set -euo pipefail
 # -------------------------------
 VERSION="${1:-v0.0.1}" # optional CLI arg (e.g. ./release.sh v0.1.0)
 TITLE="$VERSION"
-NOTES="Initial release of zio:
-
-- Cross-platform CLI tool
-- Supports Linux, macOS, and Windows
-- Available for x86, x86_64, and ARM64 architectures"
+NOTES=""
 
 REPO="Kingrashy12/zio"
 

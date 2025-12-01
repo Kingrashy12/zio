@@ -1,11 +1,11 @@
 const ziglet = @import("ziglet");
-const ActionArg = ziglet.ActionArg;
+const CommandContext = ziglet.CommandContext;
 const std = @import("std");
 const printColored = ziglet.utils.terminal.printColored;
 
-pub fn renameDirCommand(params: ActionArg) !void {
+pub fn renameDirCommand(ctx: CommandContext) !void {
     var cwd = std.fs.cwd();
-    const args = params.args;
+    const args = ctx.args;
 
     if (args.len == 0) {
         printColored(.yellow, "Usage: zio rndir <old_name>-><new_name>", .{});

@@ -1,8 +1,8 @@
 const ziglet = @import("ziglet");
-const ActionArg = ziglet.ActionArg;
+const CommandContext = ziglet.CommandContext;
 const std = @import("std");
 const printColored = ziglet.utils.terminal.printColored;
 
-pub fn listCommand(params: ActionArg) !void {
-    _ = params;
+pub fn listCommand(ctx: CommandContext) !void {
+    _ = ctx;
 }
