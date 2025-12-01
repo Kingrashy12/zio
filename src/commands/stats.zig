@@ -25,13 +25,10 @@ pub fn shouldIgnore(path: []const u8, patterns: [][]u8) bool {
 
 pub fn statsCommand(ctx: CommandContext) !void {
     const allocator = ctx.allocator;
-    const args = ctx.args; // This would be list of dir to ignore
+    const args = ctx.args; // This would be list of dir or file to ignore
 
     var dir = try std.fs.cwd().openDir("", .{ .iterate = true });
     defer dir.close();
-
-    var walker = try dir.walk(allocator);
-    defer walker.deinit();
 
     var files: std.ArrayList([]const u8) = .empty;
     defer {
@@ -43,9 +40,35 @@ pub fn statsCommand(ctx: CommandContext) !void {
 
     try walkFiles(allocator, &dir, "", &files, args);
 
-    for (files.items) |file| {
-        print("File: {s}\n", .{file});
+    var total_files: usize = 0;
+    var total_lines: usize = 0;
+
+    for (files.items) |path| {
+        var file = std.fs.cwd().openFile(path, .{}) catch continue;
+        defer file.close();
+
+        const file_size = try file.getEndPos();
+
+        const buffer = try allocator.alloc(u8, @intCast(file_size));
+        defer allocator.free(buffer);
+
+        var buf_reader = file.reader(buffer);
+
+        var line_count: usize = 0;
+
+        while (try buf_reader.interface.takeDelimiter('\n')) |_| {
+            line_count += 1;
+        }
+
+        total_files += 1;
+        total_lines += line_count;
+
+        // Print per-file stats
+        print("{s}: {d} lines\n", .{ path, line_count });
     }
+
+    print("\nTotal files: {d}\n", .{total_files});
+    print("Total lines: {d}\n", .{total_lines});
 }
 
 pub fn walkFiles(
