@@ -31,7 +31,7 @@ pub fn listCommand(ctx: CommandContext) !void {
     }
 
     if (dirs.items.len > 0) {
-        printColored(.green, "Directories:\n", .{});
+        print("Directories:\n", .{});
         for (dirs.items) |value| {
             printColored(.green, "  {s}\n", .{value});
             defer allocator.free(value);
@@ -39,7 +39,7 @@ pub fn listCommand(ctx: CommandContext) !void {
     }
 
     if (files.items.len > 0) {
-        printColored(.blue, "\nFiles:\n", .{});
+        print("\nFiles:\n", .{});
         for (files.items) |value| {
             printColored(.blue, "  {s}\n", .{value});
             defer allocator.free(value);
