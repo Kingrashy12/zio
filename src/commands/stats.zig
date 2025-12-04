@@ -142,6 +142,10 @@ pub fn statsCommand(ctx: CommandContext) !void {
 
     printColored(.white, "Total files: {s}\n", .{total_files_str});
     printColored(.white, "Total lines: {s}\n", .{total_lines_str});
+
+    for (0..FILE_COL_WIDTH + 3 + LINES_COL_WIDTH) |_| printColored(.gray, "-", .{});
+
+    printLanguageStats(allocator, &file_stats);
 }
 
 pub fn walkFiles(
@@ -223,5 +227,127 @@ pub fn formatNumber(allocator: std.mem.Allocator, n: usize) ![]const u8 {
         return try std.fmt.allocPrint(allocator, "{d}.{d}K", .{ value, rem });
     } else {
         return try std.fmt.allocPrint(allocator, "{}", .{n});
+    }
+}
+
+const Lang = struct {
+    name: []const u8,
+    color: []const u8, // ascii color
+};
+
+const language_map = std.StaticStringMap(Lang).initComptime(.{
+    .{ ".zig", Lang{ .name = "Zig", .color = "\x1b[38;2;236;145;92m" } }, // #EC915C
+    .{ ".zon", Lang{ .name = "Zig", .color = "\x1b[38;2;236;145;92m" } }, // #EC915C
+    .{ ".ts", Lang{ .name = "TypeScript", .color = "\x1b[38;2;49;120;198m" } }, // #3178C6
+    .{ ".js", Lang{ .name = "JavaScript", .color = "\x1b[38;2;241;224;90m" } }, // #F1E05A
+    .{ ".rs", Lang{ .name = "Rust", .color = "\x1b[38;2;206;116;89m" } }, // #CE7459
+    .{ ".py", Lang{ .name = "Python", .color = "\x1b[38;2;53;114;165m" } }, // #3572A5
+    .{ ".java", Lang{ .name = "Java", .color = "\x1b[38;2;176;114;25m" } }, // #B07219
+    .{ ".go", Lang{ .name = "Go", .color = "\x1b[38;2;0;173;216m" } }, // #00ADD8
+    .{ ".c", Lang{ .name = "C", .color = "\x1b[38;2;85;85;85m" } }, // #555555
+    .{ ".cpp", Lang{ .name = "C++", .color = "\x1b[38;2;243;75;125m" } }, // #F34B7D
+    .{ ".h", Lang{ .name = "Header", .color = "\x1b[38;2;243;75;125m" } }, // #F34B7D
+    .{ ".hpp", Lang{ .name = "C++ Header", .color = "\x1b[38;2;243;75;125m" } }, // #F34B7D
+    .{ ".md", Lang{ .name = "Markdown", .color = "\x1b[38;2;8;63;161m" } }, // #083FA1
+    .{ ".json", Lang{ .name = "JSON", .color = "\x1b[38;2;41;41;41m" } }, // #292929
+
+    // Web languages
+    .{ ".html", Lang{ .name = "HTML", .color = "\x1b[38;2;227;76;38m" } }, // #E34C26
+    .{ ".htm", Lang{ .name = "HTML", .color = "\x1b[38;2;227;76;38m" } }, // #E34C26
+    .{ ".css", Lang{ .name = "CSS", .color = "\x1b[38;2;102;51;153m" } }, // #663399
+    .{ ".scss", Lang{ .name = "SCSS", .color = "\x1b[38;2;198;83;140m" } }, // #C6538C
+    .{ ".sass", Lang{ .name = "Sass", .color = "\x1b[38;2;166;107;133m" } }, // #A69285
+    .{ ".less", Lang{ .name = "Less", .color = "\x1b[38;2;29;54;93m" } }, // #1D365D
+    .{ ".jsx", Lang{ .name = "React", .color = "\x1b[38;2;241;224;90m" } }, // #F1E05A (JavaScript)
+    .{ ".tsx", Lang{ .name = "React TS", .color = "\x1b[38;2;49;120;198m" } }, // #3178C6 (TypeScript)
+    .{ ".vue", Lang{ .name = "Vue", .color = "\x1b[38;2;65;184;131m" } }, // #41B883
+    .{ ".svelte", Lang{ .name = "Svelte", .color = "\x1b[38;2;255;62;0m" } }, // #FF3E00
+
+    // Shell/Scripting
+    .{ ".sh", Lang{ .name = "Shell", .color = "\x1b[38;2;137;224;81m" } }, // #89E051
+    .{ ".bash", Lang{ .name = "Bash", .color = "\x1b[38;2;137;224;81m" } }, // #89E051
+    .{ ".zsh", Lang{ .name = "Zsh", .color = "\x1b[38;2;137;224;81m" } }, // #89E051
+    .{ ".fish", Lang{ .name = "Fish", .color = "\x1b[38;2;74;110;87m" } }, // #4A6E57
+    .{ ".ps1", Lang{ .name = "PowerShell", .color = "\x1b[38;2;1;36;86m" } }, // #012456
+    .{ ".bat", Lang{ .name = "Batch", .color = "\x1b[38;2;193;241;46m" } }, // #C1F12E
+    .{ ".cmd", Lang{ .name = "Batch", .color = "\x1b[38;2;193;241;46m" } }, // #C1F12E
+
+    // Other popular languages
+    .{ ".rb", Lang{ .name = "Ruby", .color = "\x1b[38;2;112;21;22m" } }, // #701516
+    .{ ".php", Lang{ .name = "PHP", .color = "\x1b[38;2;79;93;149m" } }, // #4F5D95
+    .{ ".swift", Lang{ .name = "Swift", .color = "\x1b[38;2;240;81;56m" } }, // #F05138
+    .{ ".kt", Lang{ .name = "Kotlin", .color = "\x1b[38;2;169;123;255m" } }, // #A97BFF
+    .{ ".cs", Lang{ .name = "C#", .color = "\x1b[38;2;23;134;0m" } }, // #178600
+    .{ ".lua", Lang{ .name = "Lua", .color = "\x1b[38;2;0;0;128m" } }, // #000080
+    .{ ".r", Lang{ .name = "R", .color = "\x1b[38;2;25;140;231m" } }, // #198CE7
+    .{ ".scala", Lang{ .name = "Scala", .color = "\x1b[38;2;194;45;64m" } }, // #C22D40
+    .{ ".dart", Lang{ .name = "Dart", .color = "\x1b[38;2;0;180;171m" } }, // #00B4AB
+    .{ ".elm", Lang{ .name = "Elm", .color = "\x1b[38;2;96;181;204m" } }, // #60B5CC
+
+    // Markup/Data
+    .{ ".xml", Lang{ .name = "XML", .color = "\x1b[38;2;13;103;76m" } }, // #0D674C
+    .{ ".yml", Lang{ .name = "YAML", .color = "\x1b[38;2;203;56;55m" } }, // #CB3837
+    .{ ".yaml", Lang{ .name = "YAML", .color = "\x1b[38;2;203;56;55m" } }, // #CB3837
+    .{ ".toml", Lang{ .name = "TOML", .color = "\x1b[38;2;156;66;33m" } }, // #9C4221
+    .{ ".ini", Lang{ .name = "INI", .color = "\x1b[38;2;209;219;224m" } }, // #D1DBE0
+    .{ ".sql", Lang{ .name = "SQL", .color = "\x1b[38;2;224;148;0m" } }, // #E09400
+    .{ ".graphql", Lang{ .name = "GraphQL", .color = "\x1b[38;2;225;0;152m" } }, // #E10098
+
+    // Config/Build
+    .{ ".dockerfile", Lang{ .name = "Dockerfile", .color = "\x1b[38;2;56;77;84m" } }, // #384D54
+    .{ ".makefile", Lang{ .name = "Makefile", .color = "\x1b[38;2;66;120;25m" } }, // #427819
+    .{ ".cmake", Lang{ .name = "CMake", .color = "\x1b[38;2;218;52;52m" } }, // #DA3434
+    .{ ".gradle", Lang{ .name = "Gradle", .color = "\x1b[38;2;2;48;58m" } }, // #02303A
+});
+
+const LangCount = struct {
+    count: usize = 0,
+    color: []const u8,
+};
+
+fn printLanguageStats(allocator: std.mem.Allocator, file_stats: *std.ArrayList(FileStats)) void {
+    var lang_counts = std.StringHashMap(LangCount).init(allocator);
+    defer lang_counts.deinit();
+
+    for (file_stats.items) |fs| {
+        const ext = std.fs.path.extension(fs.name);
+        if (language_map.get(ext)) |lang| {
+            if (lang_counts.getPtr(lang.name)) |lg| {
+                lg.count += 1;
+            } else {
+                lang_counts.put(lang.name, .{ .color = lang.color, .count = 1 }) catch std.debug.panic("OOM", .{});
+            }
+        } else {
+            if (lang_counts.getPtr("Others")) |lg| {
+                lg.count += 1;
+            } else {
+                lang_counts.put("Others", .{ .color = terminal.Color.ansiCode(.gray), .count = 1 }) catch std.debug.panic("OOM", .{});
+            }
+        }
+    }
+
+    // print result
+    var it = lang_counts.iterator();
+
+    const total_file_count = file_stats.items.len;
+
+    print("\n", .{});
+
+    printColored(.bold, "Languages\n\n", .{});
+
+    while (it.next()) |entry| {
+        const count_float: f64 = @floatFromInt(entry.value_ptr.count);
+        const total_float: f64 = @floatFromInt(total_file_count);
+        const percentage = (count_float * 100) / total_float;
+
+        print("{s}{s}{s} {s}{d:.2}%{s}   ", .{
+            entry.value_ptr.color,
+            entry.key_ptr.*,
+            terminal.Color.ansiCode(.reset),
+            //
+            terminal.Color.ansiCode(.gray),
+            percentage,
+            terminal.Color.ansiCode(.reset),
+        });
     }
 }
