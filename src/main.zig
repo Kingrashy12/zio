@@ -14,7 +14,7 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    var cli = CLIBuilder.init(allocator, "zio", "0.1.2", "A blazing-fast, cross-platform file system utility built in Zig — designed for efficiency, reliability, and simplicity.");
+    var cli = CLIBuilder.init(allocator, "zio", "0.1.3", "A blazing-fast, cross-platform file system utility built in Zig — designed for efficiency, reliability, and simplicity.");
     defer cli.deinit();
 
     cli.setGlobalOptions();
