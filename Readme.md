@@ -262,8 +262,6 @@ List all files in the current directory.
 zio list
 ```
 
-**Note:** This command is currently under development.
-
 #### `stats`
 
 Get statistics for all files in the current directory, including line counts.
