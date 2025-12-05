@@ -3,6 +3,7 @@ const ziglet = @import("ziglet");
 const CLIUtils = ziglet.CLIUtils;
 const CommandContext = ziglet.CommandContext;
 const terminal = ziglet.utils.terminal;
+const Color = terminal.Color;
 const print = terminal.print;
 const printColored = terminal.printColored;
 
@@ -321,7 +322,7 @@ fn printLanguageStats(allocator: std.mem.Allocator, file_stats: *std.ArrayList(F
             if (lang_counts.getPtr("Others")) |lg| {
                 lg.count += 1;
             } else {
-                lang_counts.put("Others", .{ .color = terminal.Color.ansiCode(.gray), .count = 1 }) catch std.debug.panic("OOM", .{});
+                lang_counts.put("Others", .{ .color = Color.ansiCode(.gray), .count = 1 }) catch std.debug.panic("OOM", .{});
             }
         }
     }
@@ -335,6 +336,19 @@ fn printLanguageStats(allocator: std.mem.Allocator, file_stats: *std.ArrayList(F
 
     printColored(.bold, "Languages\n\n", .{});
 
+    // print line block
+    while (it.next()) |entry| {
+        print("{s}", .{entry.value_ptr.color});
+        for (0..(entry.value_ptr.count * 100) / total_file_count) |_| {
+            print("█", .{});
+        }
+        print("{s}", .{Color.ansiCode(.reset)});
+    }
+
+    print("\n", .{});
+
+    it = lang_counts.iterator();
+    // display language statistics
     while (it.next()) |entry| {
         const count_float: f64 = @floatFromInt(entry.value_ptr.count);
         const total_float: f64 = @floatFromInt(total_file_count);
@@ -343,11 +357,11 @@ fn printLanguageStats(allocator: std.mem.Allocator, file_stats: *std.ArrayList(F
         print("{s}{s}{s} {s}{d:.2}%{s}   ", .{
             entry.value_ptr.color,
             entry.key_ptr.*,
-            terminal.Color.ansiCode(.reset),
+            Color.ansiCode(.reset),
             //
-            terminal.Color.ansiCode(.gray),
+            Color.ansiCode(.gray),
             percentage,
-            terminal.Color.ansiCode(.reset),
+            Color.ansiCode(.reset),
         });
     }
 }
