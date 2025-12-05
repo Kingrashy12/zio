@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const ziglet = @import("ziglet");
 const CLIUtils = ziglet.CLIUtils;
 const CommandContext = ziglet.CommandContext;
@@ -36,7 +37,13 @@ pub fn statsCommand(ctx: CommandContext) !void {
     const allocator = ctx.allocator;
     const args = ctx.args; // This would be list of dir or file to ignore
 
-    var dir = try std.fs.cwd().openDir("", .{ .iterate = true });
+    var dir: std.fs.Dir = undefined;
+
+    if (builtin.os.tag == .linux or builtin.os.tag == .macos) {
+        dir = try std.fs.cwd().openDir(".", .{ .iterate = true });
+    } else {
+        dir = try std.fs.cwd().openDir("", .{ .iterate = true });
+    }
     defer dir.close();
 
     var files: std.ArrayList([]const u8) = .empty;
@@ -147,6 +154,8 @@ pub fn statsCommand(ctx: CommandContext) !void {
     for (0..FILE_COL_WIDTH + 3 + LINES_COL_WIDTH) |_| printColored(.gray, "-", .{});
 
     printLanguageStats(allocator, &file_stats);
+
+    print("\n", .{});
 }
 
 pub fn walkFiles(
