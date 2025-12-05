@@ -82,15 +82,17 @@ sudo cp zig-out/bin/zio /usr/local/bin/
 
 Download the latest release for your platform from the [GitHub Releases](https://github.com/Kingrashy12/zio/releases) page.
 
-Example for Linux x86_64:
+**Windows**
 
 ```bash
-curl -L https://github.com/Kingrashy12/zio/releases/latest/download/zio-x86_64-linux -o zio
-chmod +x zio
-sudo mv zio /usr/local/bin/
+curl -sL https://raw.githubusercontent.com/Kingrashy12/zio/main/install.bash | bash
 ```
 
-Supported platforms: Linux (x86_64, aarch64), macOS (x86_64, aarch64), Windows (x86_64, x86).
+**Linux/MacOS**
+
+```bash
+curl -sL https://raw.githubusercontent.com/Kingrashy12/zio/main/install.bash | sudo bash
+```
 
 ---
 
