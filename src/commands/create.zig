@@ -9,14 +9,14 @@ pub fn createCommand(ctx: CommandContext) !void {
     const args = ctx.args;
 
     if (args.len == 0) {
-        printColored(.yellow, "Usage: zio create <file_name>", .{});
+        printColored(.yellow, "Usage: zio create <file_name>\n", .{});
     }
 
     for (args) |name| {
         var new_file = cwd.createFile(name, .{}) catch |err| {
             switch (err) {
                 error.PathAlreadyExists => {
-                    printColored(.red, "Error: File '{s}' already exists.", .{name});
+                    printColored(.red, "Error: File '{s}' already exists.\n", .{name});
                     return;
                 },
                 else => return err,

@@ -12,7 +12,7 @@ pub fn removeDirCommand(ctx: CommandContext) !void {
     const args = ctx.args;
 
     if (args.len == 0) {
-        printColored(.yellow, "Usage: zio rmdir <dir_name>", .{});
+        printColored(.yellow, "Usage: zio rmdir <dir_name>\n", .{});
     }
 
     for (args) |name| {
@@ -43,7 +43,7 @@ fn removeDir(name: []const u8, allocator: std.mem.Allocator) !void {
     cwd.deleteDir(name) catch |err| {
         switch (err) {
             error.FileNotFound => {
-                printColored(.red, "Error: Directory '{s}' not found.", .{name});
+                printColored(.red, "Error: Directory '{s}' not found.\n", .{name});
                 return;
             },
             error.DirNotEmpty => {

@@ -9,14 +9,14 @@ pub fn mkdirCommand(ctx: CommandContext) !void {
     const args = ctx.args;
 
     if (args.len == 0) {
-        printColored(.yellow, "Usage: zio mkdir <dir_name>", .{});
+        printColored(.yellow, "Usage: zio mkdir <dir_name>\n", .{});
     }
 
     for (args) |name| {
         cwd.makeDir(name) catch |err| {
             switch (err) {
                 error.PathAlreadyExists => {
-                    printColored(.red, "Error: Directory '{s}' already exists.", .{name});
+                    printColored(.red, "Error: Directory '{s}' already exists.\n", .{name});
                     return;
                 },
                 else => {

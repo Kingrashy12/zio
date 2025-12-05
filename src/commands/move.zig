@@ -9,14 +9,14 @@ pub fn moveCommand(ctx: CommandContext) !void {
     const args = ctx.args;
 
     if (args.len == 0) {
-        printColored(.yellow, "Usage: zio move <old_location>-><new_location>", .{});
+        printColored(.yellow, "Usage: zio move <old_location>-><new_location>\n", .{});
     }
 
     for (args) |arg| {
         const parts = std.mem.indexOf(u8, arg, "->");
 
         if (parts == null) {
-            printColored(.red, "Invalid argument format: {s}. Expected format: <old_location>-><new_location>", .{arg});
+            printColored(.red, "Invalid argument format: {s}. Expected format: <old_location>-><new_location>\n", .{arg});
             return;
         }
 
@@ -26,7 +26,7 @@ pub fn moveCommand(ctx: CommandContext) !void {
         const new_location = parts_slice.next();
 
         if (new_location == null) {
-            printColored(.red, "Missing new location in argument: {s}. Expected format: <old_location>-><new_location>", .{arg});
+            printColored(.red, "Missing new location in argument: {s}. Expected format: <old_location>-><new_location>\n", .{arg});
             return;
         }
 
@@ -35,22 +35,22 @@ pub fn moveCommand(ctx: CommandContext) !void {
         const new_name = std.fs.path.basename(new_location.?);
 
         if (!std.mem.eql(u8, old_name, new_name)) {
-            printColored(.red, "Error: Move operation requires the same filename. Example: 'data.txt -> folder/data.txt'. Got '{s}' -> '{s}'", .{ old_name, new_name });
+            printColored(.red, "Error: Move operation requires the same filename. Example: 'data.txt -> folder/data.txt'. Got '{s}' -> '{s}'\n", .{ old_name, new_name });
             return;
         }
 
         cwd.rename(old_location, new_location.?) catch |err| {
             switch (err) {
                 error.FileNotFound => {
-                    printColored(.red, "Error: Source file '{s}' not found.", .{old_location});
+                    printColored(.red, "Error: Source file '{s}' not found.\n", .{old_location});
                     return;
                 },
                 error.PathAlreadyExists => {
-                    printColored(.red, "Error: Destination '{s}' already exists.", .{new_location.?});
+                    printColored(.red, "Error: Destination '{s}' already exists.\n", .{new_location.?});
                     return;
                 },
                 else => {
-                    printColored(.red, "Error: Could not rename file '{s}' to '{s}': {s}.", .{ old_location, new_location.?, @errorName(err) });
+                    printColored(.red, "Error: Could not rename file '{s}' to '{s}': {s}.\n", .{ old_location, new_location.?, @errorName(err) });
                     return;
                 },
             }
