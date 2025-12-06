@@ -11,6 +11,7 @@ const printColored = terminal.printColored;
 const FileStats = struct {
     name: []const u8,
     lines: usize,
+    size: usize,
 };
 
 pub fn shouldIgnore(path: []const u8, patterns: [][]u8) bool {
@@ -30,8 +31,9 @@ pub fn shouldIgnore(path: []const u8, patterns: [][]u8) bool {
     return false;
 }
 
-const FILE_COL_WIDTH: usize = 65;
-const LINES_COL_WIDTH: usize = 12;
+const FILE_COL_WIDTH: usize = 45;
+const LINES_COL_WIDTH: usize = 9;
+const SIZE_COL_WIDTH: usize = 11;
 
 pub fn statsCommand(ctx: CommandContext) !void {
     const allocator = ctx.allocator;
@@ -54,12 +56,20 @@ pub fn statsCommand(ctx: CommandContext) !void {
         files.deinit(allocator);
     }
 
+    var timer = std.time.Timer.start() catch return;
+
+    var scan_timer = std.time.Timer.start() catch return;
+
     try walkFiles(allocator, &dir, "", &files, args);
+
+    const scan_time = scan_timer.lap();
 
     var file_stats: std.ArrayList(FileStats) = .empty;
     defer file_stats.deinit(allocator);
 
     const CHUNK_SIZE: usize = 8192;
+
+    var compute_timer = std.time.Timer.start() catch return;
 
     for (files.items) |path| {
         var file = std.fs.cwd().openFile(path, .{}) catch continue;
@@ -93,21 +103,25 @@ pub fn statsCommand(ctx: CommandContext) !void {
             }
         }
 
-        try file_stats.append(allocator, .{ .name = path, .lines = line_count });
+        try file_stats.append(allocator, .{ .name = path, .lines = line_count, .size = @intCast(file_size) });
     }
 
     // Print header
     printColored(.gray, "{s}", .{"File"});
     for ("File".len..FILE_COL_WIDTH) |_| printColored(.gray, " ", .{});
     printColored(.gray, " | ", .{});
-    printColored(.gray, "{s}\n", .{"Lines"});
+    printColored(.gray, "{s}", .{"Line"});
+    for ("Line".len..SIZE_COL_WIDTH) |_| printColored(.gray, " ", .{});
+    printColored(.gray, " | ", .{});
+    printColored(.gray, "{s}\n", .{"Size"});
 
     // Print separator
-    for (0..FILE_COL_WIDTH + 3 + LINES_COL_WIDTH) |_| printColored(.gray, "-", .{});
+    for (0..FILE_COL_WIDTH + 5 + LINES_COL_WIDTH + 5 + SIZE_COL_WIDTH) |_| printColored(.gray, "-", .{});
     printColored(.gray, "\n", .{});
 
     // Print each row
     var total_lines: usize = 0;
+    var total_size: usize = 0;
     for (file_stats.items) |fs| {
         var file_display = truncateName(fs.name);
 
@@ -132,14 +146,23 @@ pub fn statsCommand(ctx: CommandContext) !void {
         defer allocator.free(formatted_line_str);
 
         // Right-align lines
-        for (formatted_line_str.len..LINES_COL_WIDTH) |_| printColored(.green, " ", .{});
-        printColored(.green, "{s}\n", .{formatted_line_str});
+        for (formatted_line_str.len..SIZE_COL_WIDTH) |_| printColored(.green, " ", .{});
+        printColored(.green, "{s}", .{formatted_line_str});
+
+        const size_str = try ziglet.utils.format.formatBytes(allocator, @intCast(fs.size));
+        defer allocator.free(size_str);
+
+        // Size column
+        printColored(.green, " | ", .{});
+        for (size_str.len..SIZE_COL_WIDTH) |_| printColored(.green, " ", .{});
+        printColored(.green, "{s}\n", .{size_str});
 
         total_lines += fs.lines;
+        total_size += fs.size;
     }
 
     // Print footer
-    for (0..FILE_COL_WIDTH + 3 + LINES_COL_WIDTH) |_| printColored(.gray, "-", .{});
+    for (0..FILE_COL_WIDTH + 5 + LINES_COL_WIDTH + 5 + SIZE_COL_WIDTH) |_| printColored(.gray, "-", .{});
     printColored(.gray, "\n", .{});
 
     const total_lines_str = try formatNumber(allocator, total_lines);
@@ -148,14 +171,26 @@ pub fn statsCommand(ctx: CommandContext) !void {
     const total_files_str = try formatNumber(allocator, file_stats.items.len);
     defer allocator.free(total_files_str);
 
-    printColored(.white, "Total files: {s}\n", .{total_files_str});
-    printColored(.white, "Total lines: {s}\n", .{total_lines_str});
+    const total_size_str = try ziglet.utils.format.formatBytes(allocator, @intCast(total_size));
+    defer allocator.free(total_size_str);
 
-    for (0..FILE_COL_WIDTH + 3 + LINES_COL_WIDTH) |_| printColored(.gray, "-", .{});
+    print("{s}Total files:{s} {s}\n", .{ Color.ansiCode(.gray), Color.ansiCode(.reset), total_files_str });
+    print("{s}Total lines:{s} {s}\n", .{ Color.ansiCode(.gray), Color.ansiCode(.reset), total_lines_str });
+    print("{s}Total Size:{s} {s}\n", .{ Color.ansiCode(.gray), Color.ansiCode(.reset), total_size_str });
+
+    for (0..FILE_COL_WIDTH + 5 + LINES_COL_WIDTH + 5 + SIZE_COL_WIDTH) |_| printColored(.gray, "-", .{});
 
     printLanguageStats(allocator, &file_stats);
 
     print("\n", .{});
+
+    const dir_scan_time = ziglet.utils.format.convertNanosecondsToTime(scan_time);
+    const compute_time = ziglet.utils.format.convertNanosecondsToTime(compute_timer.lap());
+    const total_time = ziglet.utils.format.convertNanosecondsToTime(timer.lap());
+
+    printColored(.gray, "\nDirectory scan completed in {d:.2}ms.\n", .{dir_scan_time.milliseconds});
+    printColored(.gray, "Computation completed in {d:.2}ms.\n", .{compute_time.milliseconds});
+    printColored(.gray, "Total time: {d:.2}ms.\n", .{total_time.milliseconds});
 }
 
 pub fn walkFiles(
