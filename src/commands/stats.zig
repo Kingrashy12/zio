@@ -31,13 +31,32 @@ pub fn shouldIgnore(path: []const u8, patterns: [][]u8) bool {
     return false;
 }
 
+fn buildIgnoreList(allocator: std.mem.Allocator, args: [][]u8) [][]u8 {
+    const default_ignore_lists = [_][]const u8{ "node_modules", "*.jpg", "*.png", "*.mp4", "*.ttf", ".git", ".zig-cache", "*.zir", "*.dia", "zig-out", "*.o", "*.obj", "*.so", "*.tgz", "*.tar", "*.zip", ".next", ".expo", "bin", "*.exe", "package-lock.json", "pnpm-lock.yaml", "*.tsbuildinfo", "*.lock", ".vscode" };
+
+    var ignore_list: std.ArrayList([]u8) = .empty;
+
+    // Add args first
+    for (args) |arg| {
+        ignore_list.append(allocator, arg) catch std.debug.panic("OOM", .{});
+    }
+
+    // Add default lists
+    for (default_ignore_lists) |list| {
+        ignore_list.append(allocator, @constCast(list)) catch std.debug.panic("OOM", .{});
+    }
+
+    return ignore_list.toOwnedSlice(allocator) catch std.debug.panic("OOM", .{});
+}
+
 const FILE_COL_WIDTH: usize = 45;
 const LINES_COL_WIDTH: usize = 9;
 const SIZE_COL_WIDTH: usize = 11;
 
 pub fn statsCommand(ctx: CommandContext) !void {
     const allocator = ctx.allocator;
-    const args = ctx.args; // This would be list of dir or file to ignore
+    const args = buildIgnoreList(allocator, ctx.args);
+    defer allocator.free(args);
 
     var dir: std.fs.Dir = undefined;
 

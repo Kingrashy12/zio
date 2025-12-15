@@ -286,6 +286,12 @@ zio stats *.log build/
 
 **Output:** Displays a table with file names and line counts, plus totals.
 
+**Default Ignore list**
+
+```bash
+"node_modules", "*.jpg", "*.png", "*.mp4", "*.ttf", ".git", ".zig-cache", "*.zir", "*.dia", "zig-out", "*.o", "*.obj", "*.so", "*.tgz", "*.tar", "*.zip", ".next", ".expo", "bin", "*.exe", "package-lock.json", "pnpm-lock.yaml", "*.tsbuildinfo", "*.lock", ".vscode"
+```
+
 ### Global Options
 
 - `--help`, `-h`: Show help information.
