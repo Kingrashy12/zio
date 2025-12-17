@@ -39,6 +39,9 @@ pub fn main() !void {
     // ================= Stats Command =================
     _ = cli.command("stats", "Get stats of all files in the current directory.").action(commands.statsCommand).finalize();
 
+    // ================= Update Command =================
+    _ = cli.command("update", "Update zio to the latest version.").action(commands.updateCommand).finalize();
+
     // ---------------------------- [[ Directory Commands ]] ---------------------------- //
 
     // ================= Make Directory Command =================
