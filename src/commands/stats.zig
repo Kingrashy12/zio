@@ -32,7 +32,7 @@ pub fn shouldIgnore(path: []const u8, patterns: [][]u8) bool {
 }
 
 fn buildIgnoreList(allocator: std.mem.Allocator, args: [][]u8) [][]u8 {
-    const default_ignore_lists = [_][]const u8{ "node_modules", "*.jpg", "*.png", "*.mp4", "*.ttf", ".git", ".zig-cache", "*.zir", "*.dia", "zig-out", "*.o", "*.obj", "*.so", "*.tgz", "*.tar", "*.zip", ".next", ".expo", "bin", "*.exe", "package-lock.json", "pnpm-lock.yaml", "*.tsbuildinfo", "*.lock", ".vscode" };
+    const default_ignore_lists = [_][]const u8{ "node_modules", "*.jpg", "*.png", "*.mp4", "*.svg", "*.ttf", ".git", ".zig-cache", "*.zir", "*.dia", "zig-out", "*.o", "*.obj", "*.so", "*.tgz", "*.tar", "*.zip", ".next", ".expo", "bin", "*.exe", "package-lock.json", "pnpm-lock.yaml", "*.tsbuildinfo", "*.lock", ".vscode" };
 
     var ignore_list: std.ArrayList([]u8) = .empty;
 

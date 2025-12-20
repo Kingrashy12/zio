@@ -284,12 +284,22 @@ zio stats
 zio stats *.log build/
 ```
 
+#### `update`
+
+Check and update zio to the latest version from GitHub
+
+**Usage:**
+
+```
+zio update
+```
+
 **Output:** Displays a table with file names and line counts, plus totals.
 
 **Default Ignore list**
 
 ```bash
-"node_modules", "*.jpg", "*.png", "*.mp4", "*.ttf", ".git", ".zig-cache", "*.zir", "*.dia", "zig-out", "*.o", "*.obj", "*.so", "*.tgz", "*.tar", "*.zip", ".next", ".expo", "bin", "*.exe", "package-lock.json", "pnpm-lock.yaml", "*.tsbuildinfo", "*.lock", ".vscode"
+"node_modules", "*.jpg", "*.png", "*.mp4", "*.ttf", ".git", ".zig-cache", "*.zir", "*.dia", "zig-out", "*.o", "*.obj", "*.so", "*.tgz", "*.tar", "*svg", "*.zip", ".next", ".expo", "bin", "*.exe", "package-lock.json", "pnpm-lock.yaml", "*.tsbuildinfo", "*.lock", ".vscode"
 ```
 
 ### Global Options
