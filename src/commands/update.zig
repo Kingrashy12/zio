@@ -137,9 +137,12 @@ fn checkUpdate(is_checking: *Atomic(bool), allocator: std.mem.Allocator, is_inst
 fn install(allocator: std.mem.Allocator, installing: *Atomic(*InstallationInfo)) void {
     if (!installing.load(.acquire).installing) return;
 
-    const url = if (builtin.os.tag == .windows) "https://raw.githubusercontent.com/Kingrashy12/zio/main/install.bash | bash" else "https://raw.githubusercontent.com/Kingrashy12/zio/main/install.bash | sudo bash";
+    const cmd = if (builtin.os.tag == .windows)
+        &.{ "cmd", "/c", "curl -sL https://raw.githubusercontent.com/Kingrashy12/zio/main/install.bash | bash" }
+    else
+        &.{ "sh", "-c", "curl -sL https://raw.githubusercontent.com/Kingrashy12/zio/main/install.bash | sudo bash" };
 
-    var child = std.process.Child.init(&.{ "curl", "-sL", url }, allocator);
+    var child = std.process.Child.init(cmd, allocator);
     child.stdout_behavior = .Pipe;
     child.stderr_behavior = .Pipe;
 
