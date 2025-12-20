@@ -41,15 +41,36 @@ done
 echo "✅ All binaries found."
 
 # -------------------------------
-# 🏷️ Ensure tag exists
+# 📝 Update version file
 # -------------------------------
-if ! git rev-parse "$VERSION" >/dev/null 2>&1; then
-  echo "🏷️ Creating new git tag $VERSION"
-  git tag "$VERSION"
-  git push origin "$VERSION"
+echo "📝 Updating version file to $VERSION"
+
+echo "$VERSION" > version
+
+git add version
+
+if git diff --cached --quiet; then
+  echo "ℹ️ Version file already up to date"
 else
-  echo "✅ Tag $VERSION already exists."
+  git commit -m "chore: bump version to $VERSION"
 fi
+
+
+# -------------------------------
+# 🏷️ Create and push tag
+# -------------------------------
+if git rev-parse "$VERSION" >/dev/null 2>&1; then
+  echo "❌ Tag $VERSION already exists. Aborting."
+  exit 1
+fi
+
+echo "🏷️ Creating tag $VERSION"
+git tag "$VERSION"
+
+echo "📤 Pushing commit and tag"
+git push origin HEAD
+git push origin "$VERSION"
+
 
 echo "📦 Preparing assets with unique filenames..."
 TMPDIR=$(mktemp -d)
