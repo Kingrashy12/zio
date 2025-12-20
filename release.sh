@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "❌ Working tree not clean. Commit or stash changes first."
+  exit 1
+fi
+
+
 # -------------------------------
 # 🏷️ Configuration
 # -------------------------------

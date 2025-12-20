@@ -59,8 +59,6 @@ fn animate(is_checking: *Atomic(bool), is_installing: *Atomic(*InstallationInfo)
 }
 
 fn checkUpdate(is_checking: *Atomic(bool), allocator: std.mem.Allocator, is_installing: *Atomic(*InstallationInfo)) void {
-    const values_to_strip = std.ascii.whitespace ++ "\x1b[0m" ++ "\x1b[37m";
-
     var child_process = std.process.Child.init(&.{ "curl", "-sL", "https://raw.githubusercontent.com/Kingrashy12/zio/main/version" }, allocator);
     child_process.stdout_behavior = .Pipe;
 
@@ -113,7 +111,11 @@ fn checkUpdate(is_checking: *Atomic(bool), allocator: std.mem.Allocator, is_inst
         return;
     };
 
-    const current_version = std.mem.trim(u8, current_buffer[0..byte_read], values_to_strip);
+    const raw = current_buffer[0..byte_read];
+    const clean = stripAnsi(allocator, raw) catch unreachable;
+    defer allocator.free(clean);
+
+    const current_version = std.mem.trim(u8, clean, &std.ascii.whitespace);
 
     const is_updated = std.mem.eql(u8, version, current_version);
 
@@ -156,4 +158,22 @@ fn install(allocator: std.mem.Allocator, installing: *Atomic(*InstallationInfo))
     printColored(.green, "\r✓ Update installed '{s}'\n", .{installing.load(.acquire).version});
 
     allocator.free(installing.load(.seq_cst).version);
+}
+
+fn stripAnsi(allocator: std.mem.Allocator, input: []const u8) ![]u8 {
+    var out: std.ArrayList(u8) = .empty;
+    var i: usize = 0;
+
+    while (i < input.len) {
+        if (input[i] == 0x1b and i + 1 < input.len and input[i + 1] == '[') {
+            i += 2;
+            while (i < input.len and input[i] != 'm') i += 1;
+            i += 1;
+        } else {
+            try out.append(allocator, input[i]);
+            i += 1;
+        }
+    }
+
+    return try out.toOwnedSlice(allocator);
 }
