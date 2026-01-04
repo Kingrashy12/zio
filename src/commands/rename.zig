@@ -8,24 +8,24 @@ pub fn renameCommand(ctx: CommandContext) !void {
     const args = ctx.args;
 
     if (args.len == 0) {
-        printColored(.yellow, "Usage: zio rename <old_name>-><new_name>\n", .{});
+        printColored(.yellow, "Usage: zio rename <old_name>::<new_name>\n", .{});
     }
 
     for (args) |value| {
-        const parts = std.mem.indexOf(u8, value, "->");
+        const parts = std.mem.indexOf(u8, value, "::");
 
         if (parts == null) {
-            printColored(.yellow, "Usage: zio rename <old_name>-><new_name>\n", .{});
+            printColored(.yellow, "Usage: zio rename <old_name>::<new_name>\n", .{});
             return;
         }
 
-        var parts_slice = std.mem.tokenizeAny(u8, value, "->");
+        var parts_slice = std.mem.tokenizeAny(u8, value, "::");
 
         const old_name = parts_slice.next().?;
         const new_name = parts_slice.next();
 
         if (new_name == null) {
-            printColored(.yellow, "Missing new name in argument: {s}. Expected format: <old_name>-><new_name>\n", .{value});
+            printColored(.yellow, "Missing new name in argument: {s}. Expected format: <old_name>::<new_name>\n", .{value});
             return;
         }
 
