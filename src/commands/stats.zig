@@ -314,7 +314,8 @@ const language_map = std.StaticStringMap(Lang).initComptime(.{
     .{ ".hpp", Lang{ .name = "C++ Header", .color = "\x1b[38;2;243;75;125m" } }, // #F34B7D
     .{ ".md", Lang{ .name = "Markdown", .color = "\x1b[38;2;8;63;161m" } }, // #083FA1
     .{ ".json", Lang{ .name = "JSON", .color = "\x1b[38;2;41;41;41m" } }, // #292929
-
+    .{ ".kairo", Lang{ .name = "Kairo", .color = "\x1b[38;2;240;220;162m" } }, // #F0DC82
+    .{ ".kbc", Lang{ .name = "Kairo Bytecode", .color = "\x1b[38;2;255;107;51m" } }, // #FF6B35
     // Web languages
     .{ ".html", Lang{ .name = "HTML", .color = "\x1b[38;2;227;76;38m" } }, // #E34C26
     .{ ".htm", Lang{ .name = "HTML", .color = "\x1b[38;2;227;76;38m" } }, // #E34C26
@@ -326,7 +327,6 @@ const language_map = std.StaticStringMap(Lang).initComptime(.{
     .{ ".tsx", Lang{ .name = "React TS", .color = "\x1b[38;2;49;120;198m" } }, // #3178C6 (TypeScript)
     .{ ".vue", Lang{ .name = "Vue", .color = "\x1b[38;2;65;184;131m" } }, // #41B883
     .{ ".svelte", Lang{ .name = "Svelte", .color = "\x1b[38;2;255;62;0m" } }, // #FF3E00
-
     // Shell/Scripting
     .{ ".sh", Lang{ .name = "Shell", .color = "\x1b[38;2;137;224;81m" } }, // #89E051
     .{ ".bash", Lang{ .name = "Bash", .color = "\x1b[38;2;137;224;81m" } }, // #89E051
