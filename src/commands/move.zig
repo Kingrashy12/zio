@@ -9,33 +9,33 @@ pub fn moveCommand(ctx: CommandContext) !void {
     const args = ctx.args;
 
     if (args.len == 0) {
-        printColored(.yellow, "Usage: zio move <old_location>-><new_location>\n", .{});
+        printColored(.yellow, "Usage: zio move <old_location>::<new_location>\n", .{});
     }
 
     for (args) |arg| {
-        const parts = std.mem.indexOf(u8, arg, "->");
+        const parts = std.mem.indexOf(u8, arg, "::");
 
         if (parts == null) {
-            printColored(.red, "Invalid argument format: {s}. Expected format: <old_location>-><new_location>\n", .{arg});
+            printColored(.red, "Invalid argument format: {s}. Expected format: <old_location>::<new_location>\n", .{arg});
             return;
         }
 
-        var parts_slice = std.mem.tokenizeAny(u8, arg, "->");
+        var parts_slice = std.mem.tokenizeAny(u8, arg, "::");
 
         const old_location = parts_slice.next().?;
         const new_location = parts_slice.next();
 
         if (new_location == null) {
-            printColored(.red, "Missing new location in argument: {s}. Expected format: <old_location>-><new_location>\n", .{arg});
+            printColored(.red, "Missing new location in argument: {s}. Expected format: <old_location>::<new_location>\n", .{arg});
             return;
         }
 
-        // Since this is a move operation ensure the filename are same, <e.g> users.json -> data/users.json
+        // Since this is a move operation ensure the filename are same, <e.g> users.json :: data/users.json
         const old_name = std.fs.path.basename(old_location);
         const new_name = std.fs.path.basename(new_location.?);
 
         if (!std.mem.eql(u8, old_name, new_name)) {
-            printColored(.red, "Error: Move operation requires the same filename. Example: 'data.txt -> folder/data.txt'. Got '{s}' -> '{s}'\n", .{ old_name, new_name });
+            printColored(.red, "Error: Move operation requires the same filename. Example: 'data.txt::folder/data.txt'. Got '{s}'::'{s}'\n", .{ old_name, new_name });
             return;
         }
 
