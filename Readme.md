@@ -85,7 +85,7 @@ Download the latest release for your platform from the [GitHub Releases](https:/
 **Windows**
 
 ```bash
-curl -sL https://raw.githubusercontent.com/Kingrashy12/zio/main/install.ps1 | powershell
+irm https://raw.githubusercontent.com/Kingrashy12/zio/main/install.ps1 | iex
 ```
 
 **Linux/MacOS**
