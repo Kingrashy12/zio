@@ -4,7 +4,6 @@
 owner="Kingrashy12"
 repo="zio"
 base_asset_name="zio" # Prefix for all assets
-windows_ext=".exe"    # Extension for Windows assets
 install_name="zio"    # Name of the executable after installation
 
 # Stop on first error
@@ -17,7 +16,7 @@ get_platform_info() {
     local os=""
     local arch=""
 
-    # 1. Determine OS
+    # 1. Determine OS (Windows removed)
     case "$(uname -s)" in
         Linux*)
             os="linux"
@@ -25,25 +24,20 @@ get_platform_info() {
         Darwin*)
             os="macos"
             ;;
-        CYGWIN*|MINGW*|MSYS*)
-            os="windows"
-            ;;
         *)
             echo "Error: Unsupported OS type: $(uname -s)" >&2
+            echo "Only Linux and macOS are supported." >&2
             exit 1
             ;;
     esac
 
-    # 2. Determine Architecture (Standardizing common variations)
+    # 2. Determine Architecture
     case "$(uname -m)" in
         x86_64|amd64)
             arch="x86_64"
             ;;
         aarch64|arm64)
             arch="aarch64"
-            ;;
-        i386|i686) # For Windows 32-bit (zio-x86-windows.exe)
-            arch="x86"
             ;;
         *)
             echo "Error: Unsupported architecture: $(uname -m)" >&2
@@ -56,7 +50,7 @@ get_platform_info() {
 
 # --- Main Logic ---
 
-echo "--- ZIO Universal Installer ---"
+echo "--- ZIO Universal Installer (Linux/macOS) ---"
 
 # Get platform info
 IFS=',' read -r OS ARCH <<< "$(get_platform_info)"
@@ -64,25 +58,11 @@ IFS=',' read -r OS ARCH <<< "$(get_platform_info)"
 echo "Detected OS: **$OS**"
 echo "Detected Architecture: **$ARCH**"
 
-# 3. Construct Asset Name based on OS and ARCH
-if [ "$OS" = "windows" ]; then
-    # Windows assets are: zio-x86_64-windows.exe, zio-x86-windows.exe
-    if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "x86" ]; then
-        asset_name="${base_asset_name}-${ARCH}-windows${windows_ext}"
-        install_name="${install_name}${windows_ext}"
-    else
-        echo "Error: No Windows asset found for architecture $ARCH." >&2
-        exit 1
-    fi
-else
-    # Linux/macOS assets are: zio-aarch64-linux, zio-x86_64-linux, etc.
-    asset_name="${base_asset_name}-${ARCH}-${OS}"
-fi
-
+# Construct Asset Name
+asset_name="${base_asset_name}-${ARCH}-${OS}"
 echo "Target Asset Name: **$asset_name**"
-echo "Target Executable Name: **$install_name**"
 
-# 4. Fetch Latest Version
+# Fetch Latest Version
 echo "Fetching latest version from GitHub..."
 latest_version=$(curl -s "https://api.github.com/repos/$owner/$repo/releases/latest" \
     | grep "tag_name" \
@@ -95,52 +75,122 @@ fi
 
 echo "Latest version: **$latest_version**"
 
-# 5. Construct Download URL
+# Construct Download URL
 download_url="https://github.com/$owner/$repo/releases/download/$latest_version/$asset_name"
 
 echo "Downloading from: **$download_url**"
 
-# 6. Download the Asset
+# Download the Asset
 curl -L -o "$asset_name" "$download_url"
 
 echo "Download complete."
 
-# 7. Determine Install Directory
-install_dir=""
-if [ "$OS" = "windows" ]; then
-    # Prefer WindowsApps for Windows users (in PATH by default)
-    if [ -n "$LOCALAPPDATA" ]; then
-        install_dir="$LOCALAPPDATA/Microsoft/WindowsApps"
+# Determine Install Directory
+install_dir="/usr/local/bin"
+
+# Check if we have write permissions to /usr/local/bin
+if [ ! -w "$install_dir" ]; then
+    echo "Warning: No write permissions to $install_dir"
+    echo "You may need to run this script with sudo."
+    
+    # Try user's local bin directory as fallback
+    user_bin_dir="$HOME/.local/bin"
+    if [ -d "$user_bin_dir" ] || mkdir -p "$user_bin_dir" 2>/dev/null; then
+        install_dir="$user_bin_dir"
+        echo "Using user directory: $install_dir"
     else
-        # Fallback if $LOCALAPPDATA isn't set (e.g., some WSL/Git Bash configs)
-        install_dir="/usr/local/bin"
+        echo "Error: Cannot find a suitable installation directory." >&2
+        exit 1
     fi
-else
-    # Standard location for Linux/macOS
-    install_dir="/usr/local/bin"
 fi
 
 mkdir -p "$install_dir"
 
 echo "Installing to directory: **$install_dir**"
 
-# 8. Move and Rename (Install)
+# Move and Rename (Install)
 mv -f "$asset_name" "$install_dir/$install_name"
 
-# 9. Set executable permissions for non-Windows systems
-if [ "$OS" != "windows" ]; then
-    chmod +x "$install_dir/$install_name"
-    echo "Set executable permissions."
-fi
+# Set executable permissions
+chmod +x "$install_dir/$install_name"
+echo "Set executable permissions."
 
 echo "Installation complete as: **$install_dir/$install_name**"
 echo
 
-# 10. Check if in PATH
-if command -v zio >/dev/null 2>&1; then
-    echo "✅ Installation successful! Run: **zio**"
+# Check if in PATH
+# Check multiple shell config files
+check_path_command() {
+    if command -v "$install_name" >/dev/null 2>&1; then
+        echo "✅ Installation successful! Run: **$install_name**"
+        return 0
+    fi
+    return 1
+}
+
+# Check if directory is in PATH
+check_in_path() {
+    local dir="$1"
+    echo "$PATH" | tr ':' '\n' | grep -q "^$dir$" && return 0
+    return 1
+}
+
+if check_path_command; then
+    # Already in PATH
+    :
+elif check_in_path "$install_dir"; then
+    # Directory is in PATH but command not found immediately
+    echo "⚠ Directory is in PATH. Try restarting your terminal or running:"
+    if [ -f "$HOME/.bashrc" ]; then
+        echo "  source ~/.bashrc"
+    fi
+    if [ -f "$HOME/.zshrc" ]; then
+        echo "  source ~/.zshrc"
+    fi
 else
-    echo "⚠ Installation successful, but the executable might not be immediately available in PATH."
-    echo "⚠ Please ensure **$install_dir** is in your system's PATH environment variable."
-    echo "⚠ You may need to restart your terminal or run **source ~/.bashrc** / **source ~/.zshrc**."
+    # Not in PATH
+    echo "⚠ Installation successful, but the executable is not in your PATH."
+    echo "⚠ Please add **$install_dir** to your PATH environment variable."
+    echo ""
+    
+    # Provide shell-specific instructions
+    if [ -f "$HOME/.bashrc" ]; then
+        echo "For bash, add this line to ~/.bashrc:"
+        echo "  export PATH=\"\$PATH:$install_dir\""
+    fi
+    
+    if [ -f "$HOME/.zshrc" ]; then
+        echo "For zsh, add this line to ~/.zshrc:"
+        echo "  export PATH=\"\$PATH:$install_dir\""
+    fi
+    
+    if [ "$SHELL" = "/bin/fish" ]; then
+        echo "For fish, run:"
+        echo "  fish_add_path $install_dir"
+    fi
+    
+    echo ""
+    echo "Then restart your terminal or run the appropriate source command."
+fi
+
+# Verify installation
+echo ""
+echo "Verifying installation..."
+if [ -x "$install_dir/$install_name" ]; then
+    file_size=$(stat -f%z "$install_dir/$install_name" 2>/dev/null || stat -c%s "$install_dir/$install_name" 2>/dev/null)
+    echo "✅ Executable installed: $install_dir/$install_name ($file_size bytes)"
+    
+    # Try to get version info
+    if "$install_dir/$install_name" --version >/dev/null 2>&1; then
+        version_output=$("$install_dir/$install_name" --version 2>&1 || echo "Version check failed")
+        echo "✅ Version: $version_output"
+    elif "$install_dir/$install_name" version >/dev/null 2>&1; then
+        version_output=$("$install_dir/$install_name" version 2>&1 || echo "Version check failed")
+        echo "✅ Version: $version_output"
+    else
+        echo "ℹ Executable appears to be working correctly"
+    fi
+else
+    echo "❌ Installation verification failed"
+    exit 1
 fi
