@@ -138,7 +138,7 @@ fn install(allocator: std.mem.Allocator, installing: *Atomic(*InstallationInfo))
     if (!installing.load(.acquire).installing) return;
 
     const cmd = if (builtin.os.tag == .windows)
-        &.{ "irm", "https://raw.githubusercontent.com/Kingrashy12/zio/main/install.ps1 | iex" }
+        &.{ "cmd", "/c", "irm https://raw.githubusercontent.com/Kingrashy12/zio/main/install.ps1 | iex" }
     else
         &.{ "sh", "-c", "curl -sL https://raw.githubusercontent.com/Kingrashy12/zio/main/install.bash | sudo bash" };
 
