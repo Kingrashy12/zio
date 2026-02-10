@@ -86,7 +86,7 @@ pub fn statsCommand(ctx: CommandContext) !void {
     var file_stats: std.ArrayList(FileStats) = .empty;
     defer file_stats.deinit(allocator);
 
-    const CHUNK_SIZE: usize = 8192;
+    const CHUNK_SIZE: usize = 10000;
 
     var compute_timer = std.time.Timer.start() catch return;
 
